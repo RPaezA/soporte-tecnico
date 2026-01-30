@@ -15,7 +15,12 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Luciana%402012@lo
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'mi_clave_secreta_super_segura' 
 
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+# Esto obliga a Render a crear las tablas automáticamente al encenderse
+with app.app_context():
+    db.create_all()
 
 # --- MODELOS (TABLAS) ---
 class User(db.Model):
@@ -146,15 +151,7 @@ def ver_ticket(id_ticket):
 
     return render_template('detalle_ticket.html', ticket=ticket_seleccionado)
 
-# --- RUTA DE CONFIGURACIÓN TEMPORAL ---
-@app.route('/crear-tablas')
-def crear_tablas():
-    try:
-        # Esta orden crea las tablas en la base de datos conectada
-        db.create_all()
-        return "<h1>¡Tablas creadas exitosamente! 🎉</h1><p>Ahora puedes volver al <a href='/'>Inicio</a> e iniciar sesión.</p>"
-    except Exception as e:
-        return f"<h1>Hubo un error: {str(e)}</h1>"
+
 
 if __name__ == '__main__':
     with app.app_context():
