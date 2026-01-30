@@ -5,40 +5,28 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# --- 1. CONFIGURACIÓN DE LA BASE DE DATOS ---
+# --- CONFIGURACIÓN DE LA BASE DE DATOS (BLINDADA PARA RENDER) ---
 
-# Intentamos obtener la dirección de la base de datos de Render (Variable de Entorno)
+# 1. Buscamos la variable en la nube
 database_url = os.environ.get('DATABASE_URL')
 
-# SI estamos en Render (la variable existe), corregimos el error común de la URL
+# 2. Si existe (estamos en Render), corregimos el formato antiguo
 if database_url:
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
-
-# SI NO estamos en Render (es None), usamos tu base de datos local de la PC
 else:
+    # 3. Si NO existe (estamos en tu PC), usamos tu clave local
+    # NOTA: Si tu clave local cambió, actualízala aquí
     database_url = 'postgresql://postgres:Luciana%402012@localhost/soporte_db'
 
-# Aplicamos la configuración final
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'mi_clave_secreta_super_segura' 
 
-# Inicializamos la conexión
 db = SQLAlchemy(app)
 
-# --- 2. CREACIÓN AUTOMÁTICA DE TABLAS ---
-# Esto se ejecuta cada vez que la app se enciende
-with app.app_context():
-    try:
-        db.create_all()
-        print("Tablas creadas/verificadas correctamente.")
-    except Exception as e:
-        print(f"Error al crear tablas: {e}")
-
-# --- A PARTIR DE AQUÍ NO BORRES NADA (Tus modelos User, Ticket, etc.) ---
-
 # --- MODELOS (TABLAS) ---
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
@@ -49,37 +37,38 @@ class Ticket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     titulo = db.Column(db.String(100), nullable=False)
     descripcion = db.Column(db.Text, nullable=False)
-    # --- LÍNEA NUEVA ---
-    solucion = db.Column(db.Text, nullable=True) # Puede estar vacía al principio
-    # -------------------
+    solucion = db.Column(db.Text, nullable=True) # Respuesta del técnico
     estado = db.Column(db.String(20), default='Abierto')
     cliente_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+# --- CREACIÓN AUTOMÁTICA DE TABLAS ---
+# Esto se ejecuta cada vez que Render enciende la aplicación
+with app.app_context():
+    try:
+        db.create_all()
+        print("--- BASE DE DATOS Y TABLAS VERIFICADAS CORRECTAMENTE ---")
+    except Exception as e:
+        print(f"--- ERROR AL CONECTAR CON BASE DE DATOS: {e} ---")
 
 # --- RUTAS ---
 
 @app.route('/')
 def home():
-    # 1. Verificar si el usuario inició sesión
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
     user_id = session['user_id']
     user_rol = session['rol']
     
-    # 2. Filtrar tickets según el rol
     if user_rol == 'cliente':
-        # El cliente solo ve SUS tickets
         lista_tickets = Ticket.query.filter_by(cliente_id=user_id).all()
     else:
-        # Admin y Técnico ven TODOS los tickets
         lista_tickets = Ticket.query.all()
 
-    # 3. Mostrar el Dashboard
     return render_template('dashboard.html', tickets=lista_tickets)
 
 @app.route('/crear_ticket', methods=['GET', 'POST'])
 def crear_ticket():
-    # Verificar sesión
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
@@ -88,7 +77,6 @@ def crear_ticket():
         desc = request.form['descripcion']
         cliente_actual_id = session['user_id']
 
-        # Guardar en base de datos
         nuevo_ticket = Ticket(titulo=titulo, descripcion=desc, cliente_id=cliente_actual_id)
         db.session.add(nuevo_ticket)
         db.session.commit()
@@ -96,6 +84,26 @@ def crear_ticket():
         return redirect(url_for('home'))
 
     return render_template('crear_ticket.html')
+
+@app.route('/ticket/<int:id_ticket>', methods=['GET', 'POST'])
+def ver_ticket(id_ticket):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    ticket_seleccionado = Ticket.query.get_or_404(id_ticket)
+
+    if request.method == 'POST':
+        rol_usuario = session['rol']
+        if rol_usuario in ['tecnico', 'admin']:
+            respuesta = request.form['solucion_texto']
+            
+            ticket_seleccionado.solucion = respuesta
+            ticket_seleccionado.estado = 'Cerrado'
+            db.session.commit()
+            
+            return redirect(url_for('home'))
+
+    return render_template('detalle_ticket.html', ticket=ticket_seleccionado)
 
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
@@ -142,34 +150,5 @@ def logout():
     session.pop('user_id', None)
     return redirect(url_for('login'))
 
-# RUTA PARA VER Y RESPONDER TICKETS
-@app.route('/ticket/<int:id_ticket>', methods=['GET', 'POST'])
-def ver_ticket(id_ticket):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    # Buscamos el ticket por su ID
-    ticket_seleccionado = Ticket.query.get_or_404(id_ticket)
-
-    # Lógica para responder (Solo Técnicos/Admins)
-    if request.method == 'POST':
-        rol_usuario = session['rol']
-        if rol_usuario in ['tecnico', 'admin']:
-            respuesta = request.form['solucion_texto']
-            
-            # Actualizamos el ticket
-            ticket_seleccionado.solucion = respuesta
-            ticket_seleccionado.estado = 'Cerrado'
-            db.session.commit()
-            
-            flash('Ticket resuelto exitosamente')
-            return redirect(url_for('home'))
-
-    return render_template('detalle_ticket.html', ticket=ticket_seleccionado)
-
-
-
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
