@@ -5,22 +5,38 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# --- CONFIGURACIÓN ---
-# Conexión a PostgreSQL con tu contraseña
-uri = os.environ.get('DATABASE_URL')
-if uri and uri.startswith("postgres://"):
-    uri = uri.replace("postgres://", "postgresql://", 1) # Corrección para Render
+# --- 1. CONFIGURACIÓN DE LA BASE DE DATOS ---
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Luciana%402012@localhost/soporte_db'
+# Intentamos obtener la dirección de la base de datos de Render (Variable de Entorno)
+database_url = os.environ.get('DATABASE_URL')
+
+# SI estamos en Render (la variable existe), corregimos el error común de la URL
+if database_url:
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+# SI NO estamos en Render (es None), usamos tu base de datos local de la PC
+else:
+    database_url = 'postgresql://postgres:Luciana%402012@localhost/soporte_db'
+
+# Aplicamos la configuración final
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'mi_clave_secreta_super_segura' 
 
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Inicializamos la conexión
 db = SQLAlchemy(app)
 
-# Esto obliga a Render a crear las tablas automáticamente al encenderse
+# --- 2. CREACIÓN AUTOMÁTICA DE TABLAS ---
+# Esto se ejecuta cada vez que la app se enciende
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+        print("Tablas creadas/verificadas correctamente.")
+    except Exception as e:
+        print(f"Error al crear tablas: {e}")
+
+# --- A PARTIR DE AQUÍ NO BORRES NADA (Tus modelos User, Ticket, etc.) ---
 
 # --- MODELOS (TABLAS) ---
 class User(db.Model):
