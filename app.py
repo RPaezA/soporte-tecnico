@@ -10,7 +10,7 @@ app = Flask(__name__)
 uri = os.environ.get('DATABASE_URL')
 if uri and uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1) # Corrección para Render
-    
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Luciana%402012@localhost/soporte_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'mi_clave_secreta_super_segura' 
@@ -145,6 +145,16 @@ def ver_ticket(id_ticket):
             return redirect(url_for('home'))
 
     return render_template('detalle_ticket.html', ticket=ticket_seleccionado)
+
+# --- RUTA DE CONFIGURACIÓN TEMPORAL ---
+@app.route('/crear-tablas')
+def crear_tablas():
+    try:
+        # Esta orden crea las tablas en la base de datos conectada
+        db.create_all()
+        return "<h1>¡Tablas creadas exitosamente! 🎉</h1><p>Ahora puedes volver al <a href='/'>Inicio</a> e iniciar sesión.</p>"
+    except Exception as e:
+        return f"<h1>Hubo un error: {str(e)}</h1>"
 
 if __name__ == '__main__':
     with app.app_context():
