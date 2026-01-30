@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Panel de Soporte</title>
+    <style>
+        /* Estilo básico de la tabla */
+        table, th, td { 
+            border: 1px solid #ddd; 
+            border-collapse: collapse; 
+            padding: 10px; 
+            text-align: left;
+        }
+        th { background-color: #f2f2f2; }
+
+        /* --- AQUÍ DEFINIMOS LOS COLORES --- */
+        /* VS Code prefiere esto antes que poner lógica dentro del style="" */
+        .texto-verde {
+            color: green;
+            font-weight: bold;
+        }
+        .texto-rojo {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bienvenido, {{ session['username'] }}</h1>
+    <p>Tu rol: <strong>{{ session['rol'] }}</strong></p>
+
+    <a href="/logout" style="color: red;">Cerrar Sesión</a>
+    <hr>
+
+    {% if session['rol'] == 'cliente' %}
+        <a href="/crear_ticket"><button>+ Crear Nuevo Ticket</button></a>
+        <br><br>
+    {% endif %}
+
+    <h3>Lista de Tickets</h3>
+    
+    <table style="width:100%">
+        <tr>
+            <th>ID</th>
+            <th>Asunto</th>
+            <th>Estado</th>
+            <th>Acción</th>
+        </tr>
+        
+        {% for ticket in tickets %}
+        <tr>
+            <td>#{{ ticket.id }}</td>
+            <td>{{ ticket.titulo }}</td>
+            
+            <td class="{% if ticket.estado == 'Abierto' %}texto-verde{% else %}texto-rojo{% endif %}">
+                {{ ticket.estado }}
+            </td>
+            
+            <td>
+                <a href="/ticket/{{ ticket.id }}">Ver detalles</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="4">No hay tickets registrados todavía.</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>

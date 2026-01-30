@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detalle del Ticket</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .caja { border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .estado-abierto { color: green; font-weight: bold; }
+        .estado-cerrado { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <a href="/">« Volver al Panel</a>
+    
+    <h2>{{ ticket.titulo }} <small>(Ticket #{{ ticket.id }})</small></h2>
+    
+    <p>Estado: 
+        <span class="{% if ticket.estado == 'Abierto' %}estado-abierto{% else %}estado-cerrado{% endif %}">
+            {{ ticket.estado }}
+        </span>
+    </p>
+
+    <div class="caja" style="background-color: #f9f9f9;">
+        <strong>Descripción del problema:</strong>
+        <p>{{ ticket.descripcion }}</p>
+    </div>
+
+    {% if ticket.solucion %}
+    <div class="caja" style="background-color: #e8f5e9;">
+        <strong>Solución del Técnico:</strong>
+        <p>{{ ticket.solucion }}</p>
+    </div>
+    {% endif %}
+
+    <hr>
+
+    {% if session['rol'] in ['tecnico', 'admin'] and ticket.estado == 'Abierto' %}
+        <h3>Responder y Cerrar Ticket</h3>
+        <form method="POST">
+            <label>Escribe la solución:</label><br>
+            <textarea name="solucion_texto" rows="5" cols="50" required></textarea>
+            <br><br>
+            <button type="submit">Enviar Solución y Cerrar Ticket</button>
+        </form>
+    {% endif %}
+
+</body>
+</html>
