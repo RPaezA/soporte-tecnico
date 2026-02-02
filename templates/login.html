@@ -1,26 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Login - Soporte Técnico</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Soporte Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #e9ecef; }
+        .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .card { width: 100%; max-width: 400px; border: none; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .btn-primary { border-radius: 8px; padding: 10px; font-weight: bold; }
+    </style>
 </head>
 <body>
-    <h2>Iniciar Sesión</h2>
-    
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div style="color: red;">{{ messages[0] }}</div>
-        {% endif %}
-    {% endwith %}
 
-    <form method="POST" action="/login">
-        <label>Usuario:</label>
-        <input type="text" name="username" required><br><br>
+    <div class="login-container">
+        <div class="card p-4">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold text-primary">🛠 Soporte Pro</h2>
+                <p class="text-muted">Ingresa a tu cuenta</p>
+            </div>
 
-        <label>Contraseña:</label>
-        <input type="password" name="password" required><br><br>
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                {% for message in messages %}
+                  <div class="alert alert-danger py-2 small text-center">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
 
-        <button type="submit">Entrar</button>
-    </form>
-    <a href="/registro">Crear una cuenta</a>
+            <form action="/login" method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Nombre de usuario</label>
+                    <input type="text" name="username" class="form-control" placeholder="Ej: admin123" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 mb-3">Iniciar Sesión</button>
+            </form>
+
+            <div class="text-center">
+                <small class="text-muted">¿No tienes cuenta? <a href="{{ url_for('registro') }}" class="text-decoration-none">Regístrate aquí</a></small>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
