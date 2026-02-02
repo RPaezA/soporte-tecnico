@@ -1,70 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Panel de Soporte</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Soporte Técnico</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/dist/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Estilo básico de la tabla */
-        table, th, td { 
-            border: 1px solid #ddd; 
-            border-collapse: collapse; 
-            padding: 10px; 
-            text-align: left;
-        }
-        th { background-color: #f2f2f2; }
-
-        /* --- AQUÍ DEFINIMOS LOS COLORES --- */
-        /* VS Code prefiere esto antes que poner lógica dentro del style="" */
-        .texto-verde {
-            color: green;
-            font-weight: bold;
-        }
-        .texto-rojo {
-            color: red;
-            font-weight: bold;
-        }
+        body { background-color: #f8f9fa; }
+        .navbar { margin-bottom: 30px; }
+        .card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
-    <h1>Bienvenido, {{ session['username'] }}</h1>
-    <p>Tu rol: <strong>{{ session['rol'] }}</strong></p>
 
-    <a href="/logout" style="color: red;">Cerrar Sesión</a>
-    <hr>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">🛠 Soporte Pro</a>
+            <div class="ms-auto">
+                <span class="navbar-text me-3">Bienvenido, <strong>{{ session['username'] }}</strong></span>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm">Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
 
-    {% if session['rol'] == 'cliente' %}
-        <a href="/crear_ticket"><button>+ Crear Nuevo Ticket</button></a>
-        <br><br>
-    {% endif %}
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Panel de Control</h2>
+            {% if session['rol'] == 'cliente' %}
+            <a href="{{ url_for('crear_ticket') }}" class="btn btn-primary">+ Nuevo Ticket</a>
+            {% endif %}
+        </div>
 
-    <h3>Lista de Tickets</h3>
-    
-    <table style="width:100%">
-        <tr>
-            <th>ID</th>
-            <th>Asunto</th>
-            <th>Estado</th>
-            <th>Acción</th>
-        </tr>
-        
-        {% for ticket in tickets %}
-        <tr>
-            <td>#{{ ticket.id }}</td>
-            <td>{{ ticket.titulo }}</td>
-            
-            <td class="{% if ticket.estado == 'Abierto' %}texto-verde{% else %}texto-rojo{% endif %}">
-                {{ ticket.estado }}
-            </td>
-            
-            <td>
-                <a href="/ticket/{{ ticket.id }}">Ver detalles</a>
-            </td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="4">No hay tickets registrados todavía.</td>
-        </tr>
-        {% endfor %}
-    </table>
+        <div class="card">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Título</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tickets %}
+                        <tr>
+                            <td class="ps-4">#{{ t.id }}</td>
+                            <td><strong>{{ t.titulo }}</strong></td>
+                            <td>
+                                {% if t.estado == 'Abierto' %}
+                                <span class="badge bg-warning text-dark">Pendiente</span>
+                                {% else %}
+                                <span class="badge bg-success">Cerrado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('ver_ticket', id_ticket=t.id) }}" class="btn btn-sm btn-outline-primary">Ver Detalle</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
+        {% if not tickets %}
+        <div class="text-center mt-5">
+            <p class="text-muted">No hay tickets registrados aún.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
