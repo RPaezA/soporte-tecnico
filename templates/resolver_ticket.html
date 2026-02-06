@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4>Formulario de Resolución - Ticket #{{ ticket.id }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label font-weight-bold">Fecha de Asignación (Administrador):</label>
+                        <input type="text" class="form-control bg-light" value="{{ ticket.fecha_asignacion.strftime('%d/%m/%Y %H:%M') }}" readonly>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Fecha de Visita:</label>
+                        <input type="date" name="fecha_visita" class="form-control" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Hora de Visita:</label>
+                        <input type="time" name="hora_visita" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Dirección exacta del Soporte:</label>
+                    <input type="text" name="direccion" class="form-control" placeholder="Ej: Av. Principal 123" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Descripción de la Solución Técnica:</label>
+                    <textarea name="descripcion_solucion" class="form-control" rows="4" required placeholder="Detalle qué trabajo realizó..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Materiales Utilizados:</label>
+                    <select name="materiales" class="form-select" multiple size="5">
+                        {% for m in materiales %}
+                        <option value="{{ m.id }}">{{ m.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Presione Ctrl (o Cmd en Mac) para seleccionar múltiples materiales.</small>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-danger">Foto Inicio (Evidencia del problema):</label>
+                        <input type="file" name="foto_inicio" class="form-control" accept="image/*" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-success">Foto Fin (Evidencia de solución):</label>
+                        <input type="file" name="foto_fin" class="form-control" accept="image/*" required>
+                    </div>
+                </div>
+
+                <hr>
+                <div class="d-flex justify-content-end">
+                    <a href="{{ url_for('dashboard_tecnico') }}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-success px-5">Finalizar y Guardar Reporte</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

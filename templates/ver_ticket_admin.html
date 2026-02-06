@@ -1,0 +1,25 @@
+{% if ticket.reporte %}
+<div class="mt-5 border-top pt-4">
+    <h3 class="text-primary">Informe de Resolución Técnica</h3>
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <p><strong>Ubicación:</strong> {{ ticket.reporte.direccion }}</p>
+            <p><strong>Fecha/Hora Visita:</strong> {{ ticket.reporte.fecha_visita }} - {{ ticket.reporte.hora_visita }}</p>
+            <p><strong>Descripción:</strong> {{ ticket.reporte.descripcion_solucion }}</p>
+            <p><strong>Materiales:</strong> 
+                {% for mat in ticket.reporte.materiales %}
+                <span class="badge bg-info text-dark">{{ mat.nombre }}</span>
+                {% endfor %}
+            </p>
+        </div>
+        <div class="col-md-3 text-center">
+            <h6>Estado Inicial</h6>
+            <img src="{{ url_for('static', filename='uploads/' + ticket.reporte.foto_inicio) }}" class="img-thumbnail" style="max-height: 200px;">
+        </div>
+        <div class="col-md-3 text-center">
+            <h6>Estado Final</h6>
+            <img src="{{ url_for('static', filename='uploads/' + ticket.reporte.foto_fin) }}" class="img-thumbnail" style="max-height: 200px;">
+        </div>
+    </div>
+</div>
+{% endif %}

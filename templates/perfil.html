@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>SoportePro - Mi Perfil</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body { background: #f8f9fa; display: flex; }
+        .sidebar { width: 260px; background: #212529; color: white; position: fixed; height: 100vh; padding: 25px; }
+        .content { margin-left: 260px; width: 100%; padding: 40px; }
+        .nav-link { color: #dee2e6; padding: 12px; border-radius: 10px; margin-bottom: 5px; }
+        .nav-link:hover, .nav-link.active { background: #0d6efd; color: white; }
+        .logo-preview { width: 120px; height: 120px; object-fit: cover; border-radius: 15px; border: 2px solid #ddd; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar shadow">
+    <h3 class="fw-bold text-info mb-5"><i class="bi bi-headset"></i> SoportePro</h3>
+    <nav class="nav flex-column">
+        <a href="{{ url_for('home') }}" class="nav-link"><i class="bi bi-grid-1x2-fill me-2"></i> Dashboard</a>
+        {% if usuario.rol == 'admin' %}
+        <a href="{{ url_for('gestionar_usuarios') }}" class="nav-link"><i class="bi bi-people-fill me-2"></i> Usuarios</a>
+        {% endif %}
+        <a href="{{ url_for('perfil') }}" class="nav-link active"><i class="bi bi-person-bounding-box me-2"></i> Perfil</a>
+        <a href="{{ url_for('logout') }}" class="nav-link text-danger mt-4"><i class="bi bi-power me-2"></i> Salir</a>
+    </nav>
+</div>
+
+<div class="content">
+    <div class="container" style="max-width: 800px;">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+            <h2 class="fw-bold mb-4 text-primary"><i class="bi bi-building me-2"></i>Información de Empresa</h2>
+            
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}{% for m in messages %}<div class="alert alert-success">{{ m }}</div>{% endfor %}{% endif %}
+            {% endwith %}
+
+            <form method="POST" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-4">
+                        <img src="{{ url_for('static', filename='logos/' + usuario.logo_path) }}" class="logo-preview mb-3 shadow-sm">
+                        <div class="mb-3">
+                            <label class="btn btn-sm btn-outline-primary">
+                                Cambiar Logo <input type="file" name="logo" hidden>
+                            </label>
+                        </div>
+                        <small class="text-muted">Formatos: JPG, PNG. Máx 2MB.</small>
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nombre de la Empresa</label>
+                            <input type="text" name="empresa_nombre" class="form-control" value="{{ usuario.empresa_nombre or '' }}" placeholder="Nombre Comercial">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">RUC / NIT</label>
+                                <input type="text" name="ruc" class="form-control" value="{{ usuario.ruc or '' }}" placeholder="Número de Registro">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Teléfono</label>
+                                <input type="text" name="telefono" class="form-control" value="{{ usuario.telefono or '' }}" placeholder="+593...">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Representante Legal</label>
+                            <input type="text" name="representante" class="form-control" value="{{ usuario.representante or '' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Correo Electrónico de Empresa</label>
+                            <input type="email" name="correo_empresa" class="form-control" value="{{ usuario.correo_empresa or '' }}">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Dirección</label>
+                            <textarea name="direccion" class="form-control" rows="2">{{ usuario.direccion or '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 w-100">Guardar Cambios</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Visita - SoportePro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0 p-4">
+                <h4 class="fw-bold mb-4">Informe de Servicio - Ticket #{{ t.id }}</h4>
+                <form action="{{ url_for('reportar_visita', id=t.id) }}" method="POST" enctype="multipart/form-data">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="small fw-bold">FECHA VISITA</label>
+                            <input type="date" name="fecha_visita" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold">HORA VISITA</label>
+                            <input type="time" name="hora_visita" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold">SOLUCIÓN REALIZADA</label>
+                        <textarea name="solucion" class="form-control" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold">MATERIALES UTILIZADOS</label>
+                        <input type="text" name="materiales" class="form-control">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="small fw-bold">FOTO ANTES</label>
+                            <input type="file" name="foto_antes" class="form-control" accept="image/*">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small fw-bold">FOTO DESPUÉS</label>
+                            <input type="file" name="foto_despues" class="form-control" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="small fw-bold">ESTADO FINAL</label>
+                        <select name="estado_final" class="form-select" required>
+                            <option value="Solucionado">Solucionado</option>
+                            <option value="En espera de partes">En espera de partes</option>
+                            <option value="Sin solucion">Sin solución</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 py-2">Guardar Reporte</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
