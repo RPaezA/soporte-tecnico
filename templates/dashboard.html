@@ -2,176 +2,191 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <title>SoportePro</title>
+    <title>SoportePro | Dashboard</title>
     <style>
-        body { background: #f4f7f6; }
-        .sidebar { width: 250px; background: #212529; min-height: 100vh; position: fixed; color: white; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { width: 250px; background: #212529; min-height: 100vh; position: fixed; color: white; z-index: 1000; }
         .content { margin-left: 250px; padding: 2rem; }
-        .vencido-bg { background-color: #fff5f5 !important; }
-        .vencido-text { color: #dc3545 !important; font-weight: bold; }
+        .vencido-bg { background-color: #fff5f5 !important; border-left: 5px solid #dc3545 !important; }
+        .prio-Alta { color: #dc3545; font-weight: bold; }
+        .prio-Media { color: #fd7e14; font-weight: bold; }
+        .prio-Baja { color: #198754; font-weight: bold; }
+        .stat-card { transition: transform 0.2s; cursor: pointer; text-decoration: none !important; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .card-custom { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
     <div class="sidebar p-4 shadow">
-        <h4 class="text-info fw-bold">SoportePro</h4>
+        <h4 class="text-info fw-bold mb-4"><i class="bi bi-shield-fill-check"></i> SoportePro</h4>
         <hr>
-        <p class="small mb-4"><i class="bi bi-person-circle"></i> {{ usuario.username }}</p>
+        <div class="mb-4">
+            <p class="small text-uppercase text-secondary fw-bold mb-1">Usuario</p>
+            <p class="mb-0"><i class="bi bi-person-circle me-2"></i> {{ usuario.username }}</p>
+            <span class="badge bg-info text-dark small">{{ usuario.rol }}</span>
+        </div>
         <nav class="nav flex-column">
-            <a href="/" class="btn btn-outline-light w-100 mb-2 border-0 text-start"><span><i class="bi bi-house me-2"></i> Inicio</span></a>
-            <a href="/logout" class="btn btn-outline-danger w-100 border-0 text-start mt-5"><i class="bi bi-box-arrow-left"></i> Salir</a>
+            <a href="/" class="btn btn-outline-light w-100 mb-2 border-0 text-start">
+                <i class="bi bi-grid-1x2-fill me-2"></i> Dashboard
+            </a>
+            <a href="/logout" class="btn btn-outline-danger w-100 border-0 text-start mt-5">
+                <i class="bi bi-box-arrow-left me-2"></i> Cerrar Sesión
+            </a>
         </nav>
     </div>
 
     <div class="content">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold">Panel de Soporte</h2>
-            <div class="d-flex gap-2">
-                {% if usuario.rol == 'admin' %}
-                <a href="/exportar_excel" class="btn btn-success shadow fw-bold">
-                    <i class="bi bi-file-earmark-excel me-1"></i> REPORTE TICKETS
-                </a>
+            <div>
+                <h2 class="fw-bold mb-0">Gestión de Soporte</h2>
+                <p class="text-muted">{% if filtro %} Filtrando: {{ filtro }} {% else %} Todos los registros {% endif %}</p>
+            </div>
+            <div>
+                {% if usuario.rol.lower() in ['admin', 'administrador'] %}
+                    <a href="/informe_ejecutivo" class="btn btn-danger fw-bold shadow-sm me-2">
+                        <i class="bi bi-file-earmark-pdf"></i> Informe Ejecutivo
+                    </a>
+                    <a href="/exportar_excel" class="btn btn-success fw-bold shadow-sm me-2">
+                        <i class="bi bi-file-earmark-excel"></i> Excel
+                    </a>
                 {% endif %}
-                
-                {% if usuario.rol == 'cliente' %}
-                <button class="btn btn-primary shadow fw-bold" data-bs-toggle="modal" data-bs-target="#modalNuevo">
-                    <i class="bi bi-plus-circle me-1"></i> NUEVO TICKET
-                </button>
+                {% if usuario.rol.lower() == 'cliente' %}
+                    <button class="btn btn-primary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNuevo">
+                        <i class="bi bi-plus-lg"></i> Nuevo Ticket
+                    </button>
                 {% endif %}
             </div>
         </div>
 
-        {% if usuario.rol == 'admin' %}
+        {% if usuario.rol.lower() in ['admin', 'administrador'] %}
         <div class="row mb-4">
-            <div class="col-md-3"><div class="card bg-warning p-3 border-0 shadow-sm"><h6>ABIERTOS</h6><h2>{{ stats.abiertos }}</h2></div></div>
-            <div class="col-md-3"><div class="card bg-info text-white p-3 border-0 shadow-sm"><h6>EN PROCESO</h6><h2>{{ stats.proceso }}</h2></div></div>
-            <div class="col-md-3"><div class="card bg-success text-white p-3 border-0 shadow-sm"><h6>CERRADOS</h6><h2>{{ stats.cerrados }}</h2></div></div>
-            <div class="col-md-3"><div class="card bg-danger text-white p-3 border-0 shadow-sm"><h6>VENCIDOS</h6><h2>{{ stats.vencidos }}</h2></div></div>
+            <div class="col-md-3"><a href="/?ver=Abierto" class="card stat-card bg-warning border-0 shadow-sm p-3 h-100 text-dark"><h6>ABIERTOS</h6><h2 class="fw-bold">{{ stats.abiertos }}</h2></a></div>
+            <div class="col-md-3"><a href="/?ver=En Proceso" class="card stat-card bg-info border-0 shadow-sm p-3 h-100 text-white"><h6>EN PROCESO</h6><h2 class="fw-bold">{{ stats.proceso }}</h2></a></div>
+            <div class="col-md-3"><a href="/?ver=Cerrado" class="card stat-card bg-success border-0 shadow-sm p-3 h-100 text-white"><h6>CERRADOS</h6><h2 class="fw-bold">{{ stats.cerrados }}</h2></a></div>
+            <div class="col-md-3"><a href="/?ver=vencidos" class="card stat-card bg-danger border-0 shadow-sm p-3 h-100 text-white"><h6>VENCIDOS (+24H)</h6><h2 class="fw-bold">{{ stats.vencidos }}</h2></a></div>
         </div>
         {% endif %}
 
-        <div class="card border-0 shadow-sm">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th class="ps-3">ID</th><th>Solicitud</th>{% if usuario.rol != 'cliente' %}<th>Cliente</th>{% endif %}{% if usuario.rol == 'admin' %}<th>Asignar</th>{% endif %}<th>Estado</th><th class="text-end pe-3">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for t in tickets %}
-                    {% set es_vencido = t.estado != 'Cerrado' and t.fecha_creacion < limite %}
-                    <tr class="{% if es_vencido %}vencido-bg{% endif %}">
-                        <td class="ps-3">
-                            <span class="{% if es_vencido %}vencido-text{% else %}fw-bold{% endif %}">
-                                #{{ t.id }} {% if es_vencido %}<i class="bi bi-exclamation-triangle-fill"></i>{% endif %}
-                            </span>
-                        </td>
-                        <td><div class="fw-bold">{{ t.titulo }}</div><small class="text-muted">{{ t.ubicacion }}</small></td>
-                        {% if usuario.rol != 'cliente' %}<td>{{ t.creador.username }}</td>{% endif %}
-                        
-                        {% if usuario.rol == 'admin' %}
-                        <td>
-                            <form action="/asignar_tecnico" method="POST">
-                                <input type="hidden" name="ticket_id" value="{{t.id}}">
-                                <select name="tecnico_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                                    <option value="">-- Asignar --</option>
-                                    {% for tec in tecnicos %}<option value="{{ tec.id }}" {% if t.tecnico_id == tec.id %}selected{% endif %}>{{ tec.username }}</option>{% endfor %}
-                                </select>
-                            </form>
-                        </td>
-                        {% endif %}
+        <div class="card card-custom shadow-sm overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="ps-4">ID</th><th>Fecha Registro</th><th>Prioridad</th><th>Solicitud</th>
+                            {% if usuario.rol.lower() != 'cliente' %}<th>Solicitante</th>{% endif %}
+                            {% if usuario.rol.lower() in ['admin', 'administrador'] %}<th>Asignar Técnico</th>{% endif %}
+                            <th>Estado</th><th class="text-end pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tickets %}
+                        {% set es_vencido = t.estado != 'Cerrado' and t.fecha_creacion < limite %}
+                        <tr class="{% if es_vencido %}vencido-bg{% endif %}">
+                            <td class="ps-4 fw-bold">#{{ t.id }}</td>
+                            <td><small class="text-muted fw-bold">{{ t.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</small></td>
+                            <td><span class="prio-{{ t.prioridad }}">{{ t.prioridad }}</span></td>
+                            <td><div class="fw-bold">{{ t.titulo }}</div><small>{{ t.ubicacion }}</small></td>
+                            {% if usuario.rol.lower() != 'cliente' %}<td>{{ t.creador.username }}</td>{% endif %}
+                            
+                            {% if usuario.rol.lower() in ['admin', 'administrador'] %}
+                            <td>
+                                <form action="/asignar_tecnico" method="POST">
+                                    <input type="hidden" name="ticket_id" value="{{t.id}}">
+                                    <select name="tecnico_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                                        <option value="">Sin Asignar</option>
+                                        {% for tec in tecnicos %}
+                                            <option value="{{ tec.id }}" {% if t.tecnico_id == tec.id %}selected{% endif %}>{{ tec.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </td>
+                            {% endif %}
 
-                        <td><span class="badge rounded-pill {% if t.estado == 'Cerrado' %}bg-success{% elif t.estado == 'En Proceso' %}bg-info{% else %}bg-warning text-dark{% endif %}">{{ t.estado }}</span></td>
-                        <td class="text-end pe-3">
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#ver{{t.id}}"><i class="bi bi-eye-fill"></i></button>
-                                
-                                {% if usuario.rol != 'cliente' %}
-                                    {% if usuario.rol == 'tecnico' %}
-                                        {% if t.estado != 'Cerrado' %}
-                                            <button class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#gestionar{{t.id}}"><i class="bi bi-tools"></i></button>
-                                        {% else %}
-                                            <button class="btn btn-sm btn-outline-secondary disabled" title="Ticket Cerrado"><i class="bi bi-lock-fill"></i></button>
-                                        {% endif %}
-                                    {% endif %}
-                                    <a href="{{ url_for('descargar_pdf', id=t.id) }}" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf"></i></a>
-                                {% endif %}
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            <td><span class="badge {% if t.estado == 'Cerrado' %}bg-success{% elif t.estado == 'En Proceso' %}bg-info{% else %}bg-warning text-dark{% endif %}">{{ t.estado }}</span></td>
+                            <td class="text-end pe-4">
+    <button class="btn btn-sm btn-light border" data-bs-toggle="modal" data-bs-target="#ver{{t.id}}" title="Ver Detalles">
+        <i class="bi bi-eye-fill text-primary"></i>
+    </button>
+
+    {% if usuario.rol.lower() == 'tecnico' %}
+        {% if t.estado != 'Cerrado' %}
+            <button class="btn btn-sm btn-dark" data-bs-toggle="modal" data-bs-target="#gestionar{{t.id}}" title="Gestionar Visita">
+                <i class="bi bi-tools"></i>
+            </button>
+        {% else %}
+            <button class="btn btn-sm btn-outline-secondary disabled" title="Ticket Cerrado - No editable">
+                <i class="bi bi-lock-fill"></i>
+            </button>
+        {% endif %}
+    {% endif %}
+
+    <a href="/ticket/pdf/{{t.id}}" class="btn btn-sm btn-outline-danger" title="Descargar Reporte PDF">
+        <i class="bi bi-file-pdf-fill"></i>
+    </a>
+    {% if usuario.rol.lower() in ['admin', 'administrador'] %}
+        <form action="/eliminar_ticket/{{t.id}}" method="POST" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este ticket permanentemente?');">
+            <button type="submit" class="btn btn-sm btn-outline-dark" title="Eliminar Ticket">
+                <i class="bi bi-trash3-fill text-danger"></i>
+            </button>
+        </form>
+    {% endif %}
+</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <div class="modal fade" id="modalNuevo" tabindex="-1">
         <div class="modal-dialog">
             <form action="/crear_ticket" method="POST" class="modal-content">
-                <div class="modal-header bg-primary text-white"><h5>Nueva Solicitud</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header bg-primary text-white"><h5>Nuevo Ticket</h5></div>
                 <div class="modal-body">
-                    <input type="text" name="titulo" class="form-control mb-3" placeholder="Título" required>
-                    <input type="text" name="ubicacion" class="form-control mb-3" placeholder="Ubicación" required>
-                    <textarea name="descripcion" class="form-control" rows="4" placeholder="Descripción..." required></textarea>
+                    <select name="prioridad" class="form-select mb-3"><option value="Baja">Baja</option><option value="Media" selected>Media</option><option value="Alta">Alta</option></select>
+                    <input type="text" name="titulo" class="form-control mb-3" placeholder="Asunto" required>
+                    <input type="text" name="ubicacion" class="form-control mb-3" placeholder="Sede" required>
+                    <textarea name="descripcion" class="form-control" rows="3" placeholder="Descripción" required></textarea>
                 </div>
-                <div class="modal-footer"><button type="submit" class="btn btn-primary w-100 fw-bold">ENVIAR TICKET</button></div>
+                <div class="modal-footer"><button type="submit" class="btn btn-primary w-100">Enviar</button></div>
             </form>
         </div>
     </div>
 
     {% for t in tickets %}
     <div class="modal fade" id="ver{{t.id}}" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content border-0">
-                <div class="modal-header bg-primary text-white"><h5>Ticket #{{t.id}}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body">
-                    <p><strong>Descripción:</strong> {{ t.descripcion }}</p>
-                    <hr>
-                    <h6 class="text-success fw-bold">INFORME TÉCNICO:</h6>
-                    {% if t.informe %}
-                    <p><strong>Trabajo:</strong> {{ t.informe.trabajo_realizado }}</p>
-                    <p><strong>Repuestos:</strong> {{ t.informe.repuestos_utilizados }}</p>
-                    {% if t.informe.foto_evidencia %}<img src="{{ url_for('static', filename='uploads/' + t.informe.foto_evidencia) }}" class="img-fluid rounded border mt-2">{% endif %}
-                    {% else %}<p class="small text-muted">Sin informe aún.</p>{% endif %}
-                </div>
+        <div class="modal-dialog modal-lg"><div class="modal-content">
+            <div class="modal-header bg-dark text-white"><h5>Ticket #{{t.id}}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <p><strong>Descripción:</strong></p><p class="p-3 bg-light rounded">{{ t.descripcion }}</p>
+                {% if t.informe %}<hr><p class="text-success fw-bold">INTERVENCIÓN TÉCNICA:</p><p>{{ t.informe.trabajo_realizado }}</p>{% endif %}
             </div>
-        </div>
+        </div></div>
     </div>
 
-    {% if usuario.rol == 'tecnico' and t.estado != 'Cerrado' %}
     <div class="modal fade" id="gestionar{{t.id}}" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <form action="/finalizar_ticket" method="POST" enctype="multipart/form-data" class="modal-content">
-                <div class="modal-header bg-dark text-white"><h5>Informe Visita #{{t.id}}</h5></div>
+                <input type="hidden" name="ticket_id" value="{{t.id}}">
+                <div class="modal-header bg-dark text-white"><h5>Informe de Visita #{{t.id}}</h5></div>
                 <div class="modal-body">
-                    <input type="hidden" name="ticket_id" value="{{t.id}}">
-                    <div class="row g-2 mb-3">
-                        <div class="col"><label class="small fw-bold">Fecha</label><input type="date" name="fecha" class="form-control" required></div>
-                        <div class="col"><label class="small fw-bold">Hora</label><input type="time" name="hora" class="form-control" required></div>
-                    </div>
-                    <select name="estado" class="form-select mb-3"><option value="En Proceso">En Proceso</option><option value="Cerrado">Cerrado</option></select>
-                    <textarea name="trabajo_realizado" class="form-control mb-3" rows="3" required placeholder="Actividad realizada..."></textarea>
-                    <input type="text" name="repuestos" class="form-control mb-3" placeholder="Repuestos utilizados...">
-                    <input type="file" name="foto" class="form-control">
+                    <div class="row mb-3"><div class="col"><label class="small fw-bold">Fecha</label><input type="date" name="fecha" class="form-control" required></div><div class="col"><label class="small fw-bold">Hora</label><input type="time" name="hora" class="form-control" required></div></div>
+                    <label class="small fw-bold">Estado</label><select name="estado" class="form-select mb-3"><option value="En Proceso">En Proceso</option><option value="Cerrado" selected>Cerrado</option></select>
+                    <label class="small fw-bold">Trabajo Realizado</label><textarea name="trabajo_realizado" class="form-control mb-3" rows="3" required></textarea>
+                    <label class="small fw-bold">Repuestos Utilizados</label><textarea name="repuestos" class="form-control mb-3" rows="2" placeholder="Ej: Disco Duro, Fuente..."></textarea>
+                    <label class="small fw-bold">Evidencia (Foto)</label><input type="file" name="foto" class="form-control" accept="image/*">
                 </div>
-                <div class="modal-footer"><button type="submit" class="btn btn-primary w-100">Guardar Informe</button></div>
+                <div class="modal-footer"><button type="submit" class="btn btn-success w-100 fw-bold">Guardar Informe Final</button></div>
             </form>
         </div>
     </div>
-    {% endif %}
     {% endfor %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function actualizar() {
-            fetch('/api/pendientes').then(r => r.json()).then(d => {
-                const b = document.getElementById('badge-sidebar');
-                if(b) { b.innerText = d.count; b.style.display = d.count > 0 ? 'block' : 'none'; }
-            });
-        }
-        setInterval(actualizar, 15000); actualizar();
-    </script>
 </body>
 </html>
